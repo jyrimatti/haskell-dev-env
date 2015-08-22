@@ -61,8 +61,8 @@ Vagrant.configure("2") do |config|
     config.vm.box = "larryweya/nixos-14.12_64"
 
     config.vm.provider 'virtualbox' do |v|
-      v.memory = 4096
-      v.cpus = 4
+      v.memory = 2048
+      v.cpus = 2
       # v.gui = true   # enable this if you prefer the GUI
     end
   

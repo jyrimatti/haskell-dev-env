@@ -74,10 +74,6 @@ Vagrant.configure("2") do |config|
 
     # nixos-stuff
     config.vm.provision :nixos, :expression => {
-        environment: {
-            # Nox to help with Nix
-            systemPackages: [ :nox ]
-        },
         programs: {
             # running GUI apps through SSH seems to need this...
             ssh: {

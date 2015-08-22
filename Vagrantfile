@@ -208,7 +208,7 @@ test -e /home/vagrant/nixpkgs || (
 cd /home/vagrant/nixpkgs
 git fetch
 # NixPkgs revision to use. Feel free to update, but note that in master branch stuff seems to break a lot...
-git checkout 'f433c06ad877435d42b82062b5457df235d51032'
+git checkout '75cf3a27670ae0213aa12feb32ed563a4dbf3a8c'
 SCRIPT
 
 

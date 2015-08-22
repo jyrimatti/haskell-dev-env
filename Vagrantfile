@@ -186,11 +186,6 @@ Vagrant.configure("2") do |config|
     config.vm.provision :shell,
         inline: 'chmod o+x /home/vagrant && (test -e /home/vagrant/.cabal || mkdir /home/vagrant/.cabal) && chown vagrant:vagrant /home/vagrant/.cabal && (test -e /home/vagrant/.cabal/bin || mkdir /home/vagrant/.cabal/bin) && chown vagrant:vagrant /home/vagrant/.cabal/bin'
 
-    # TODO: remove this. Install ghc-mod from master
-    config.vm.provision :shell,
-        inline: $ghcmod,
-        privileged: false
-
 end
 
 
@@ -270,9 +265,7 @@ $sublime = <<SCRIPT
 echo '#!/bin/sh'                                                                                                           > /home/vagrant/bin/sublime.sh
 echo 'set -eu'                                                                                                            >> /home/vagrant/bin/sublime.sh
 
-# TODO: switch when ghc-mod from hackage builds on ghc 7.10
-#echo 'nix-shell -p pkgs.haskellPackages.stylish-haskell -p pkgs.haskellPackages.hsdev -p sublime3 --command "sublime $@"' >> /home/vagrant/bin/sublime.sh
-echo "nix-shell -p pkgs.haskellPackages.stylish-haskell -p 'with(pkgs.haskellPackages); haskellPackages.hsdev.override {ghc-mod = callPackage \\"/tmp/ghc-mod/\\" {};}' -p sublime3" '--command "sublime $@"' >> /home/vagrant/bin/sublime.sh
+echo 'nix-shell -p pkgs.haskellPackages.stylish-haskell -p pkgs.haskellPackages.hsdev -p sublime3 --command "sublime $@"' >> /home/vagrant/bin/sublime.sh
 
 chmod u+x /home/vagrant/bin/sublime.sh
 
@@ -285,12 +278,13 @@ test -e /home/vagrant/.config/sublime-text-3/Packages || (
 )
 test -e /home/vagrant/.config/sublime-text-3/Packages/SublimeHaskell || (
   git clone https://github.com/SublimeHaskell/SublimeHaskell.git /home/vagrant/.config/sublime-text-3/Packages/SublimeHaskell &&
-  cd /home/vagrant/.config/sublime-text-3/Packages/SublimeHaskell &&
-  git checkout hsdev &&
-  git checkout '03e04e6a7219b28d8811777f0ff66ba91f8b4daa' &&
   (test -e /home/vagrant/.config/sublime-text-3/Packages/User || mkdir /home/vagrant/.config/sublime-text-3/Packages/User) &&
   echo '{ "enable_hdevtools": false, "enable_hsdev": true }' > /home/vagrant/.config/sublime-text-3/Packages/User/SublimeHaskell.sublime-settings
 )
+cd /home/vagrant/.config/sublime-text-3/Packages/SublimeHaskell
+git pull
+git checkout hsdev
+git checkout 'c1f92945bfbc3b52c719d4cb8f26c1eb4fd5b27b'
 SCRIPT
 
 
@@ -300,9 +294,7 @@ echo '#!/bin/sh'                                                                
 echo 'set -eu'                                                                                                         >> /home/vagrant/bin/atom.sh
 echo 'nix-shell -p atom --command "apm install language-haskell haskell-ghc-mod ide-haskell autocomplete-haskell"'     >> /home/vagrant/bin/atom.sh
 
-# TODO: switch when ghc-mod from hackage builds on ghc 7.10
-#echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p pkgs.haskellPackages.cabal-install -p atom --command "atom"' >> /home/vagrant/bin/atom.sh
-echo 'nix-shell -p pkgs.haskellPackages.cabal-install -p pkgs.haskellPackages.hlint -p pkgs.haskellPackages.stylish-haskell -p atom --command "atom"' >> /home/vagrant/bin/atom.sh
+echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p pkgs.haskellPackages.cabal-install -p pkgs.haskellPackages.hlint -p pkgs.haskellPackages.stylish-haskell -p atom --command "atom"' >> /home/vagrant/bin/atom.sh
 
 chmod u+x /home/vagrant/bin/atom.sh 
 SCRIPT
@@ -323,38 +315,6 @@ echo '#!/bin/sh'                                     > /home/vagrant/bin/firefox
 echo 'set -eu'                                      >> /home/vagrant/bin/firefox.sh
 echo 'nix-shell -p firefox --command "firefox"'     >> /home/vagrant/bin/firefox.sh
 chmod u+x /home/vagrant/bin/firefox.sh 
-SCRIPT
-
-
-
-# TODO: remove when ghc-mod from hackage builds on ghc 7.10
-$ghcmod = <<SCRIPT
-test -e /tmp/ghc-mod || (
-  cd /tmp/ &&
-  rm -fR ghc-mod &&
-  GIT_SSL_NO_VERIFY=true git clone https://github.com/kazu-yamamoto/ghc-mod.git &&
-  cd ghc-mod &&
-  git checkout '4b2be9c9edbd377c3d95b6685ab53e7c5270edea' &&
-
-  # skip tests since they failed for whatever reason ;)
-  sed -i '/Test-Suite.*/,$d' ghc-mod.cabal
-)
-test -e /tmp/ghc-mod/ghc-mod || (
-  # build binaries for Atom.IO
-  cd /tmp/ghc-mod &&
-  echo 'export PATH=/tmp/ghc-mod/ghc-mod:/tmp/ghc-mod/ghc-modi:$PATH' >> /home/vagrant/.profile &&
-  shell.sh <<BUILD
-    cabal build --verbose=0
-    mv dist/build/ghc-mod ./
-    mv dist/build/ghc-modi ./
-    cabal clean
-BUILD
-)
-
-# new default.nix without make-stuff which failed for whatever reason ;)
-# This prepares the directory for hsdev build on Sublime startup
-sed -i '/.*make.*/d' /tmp/ghc-mod/default.nix
-sed -i '/.*Makefile.*/d' /tmp/ghc-mod/default.nix
 SCRIPT
 
 

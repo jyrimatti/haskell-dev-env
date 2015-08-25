@@ -44,6 +44,9 @@
 # Start Atom.IO:
 # > atom.sh
 
+# Start Emacs:
+# > emacs.sh
+
 # Start Leksah:
 # TODO
 
@@ -167,6 +170,11 @@ Vagrant.configure("2") do |config|
         inline: $atom,
         privileged: false
 
+    # script for running Emacs editor
+    config.vm.provision :shell,
+        inline: $emacs,
+        privileged: false
+
     # script for running Leksah editor
     config.vm.provision :shell,
         inline: $leksah,
@@ -265,7 +273,7 @@ $sublime = <<SCRIPT
 echo '#!/bin/sh'                                                                                                           > /home/vagrant/bin/sublime.sh
 echo 'set -eu'                                                                                                            >> /home/vagrant/bin/sublime.sh
 
-echo 'nix-shell -p pkgs.haskellPackages.stylish-haskell -p pkgs.haskellPackages.hsdev -p sublime3 --command "sublime $@"' >> /home/vagrant/bin/sublime.sh
+echo 'nix-shell -p haskellPackages.stylish-haskell -p haskellPackages.hsdev -p sublime3 --command "sublime $@"' >> /home/vagrant/bin/sublime.sh
 
 chmod u+x /home/vagrant/bin/sublime.sh
 
@@ -294,9 +302,26 @@ echo '#!/bin/sh'                                                                
 echo 'set -eu'                                                                                                         >> /home/vagrant/bin/atom.sh
 echo 'nix-shell -p atom --command "apm install language-haskell haskell-ghc-mod ide-haskell autocomplete-haskell"'     >> /home/vagrant/bin/atom.sh
 
-echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p pkgs.haskellPackages.cabal-install -p pkgs.haskellPackages.hlint -p pkgs.haskellPackages.stylish-haskell -p atom --command "atom"' >> /home/vagrant/bin/atom.sh
+echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p haskellPackages.cabal-install -p haskellPackages.hlint -p haskellPackages.stylish-haskell -p atom --command "atom"' >> /home/vagrant/bin/atom.sh
 
 chmod u+x /home/vagrant/bin/atom.sh 
+SCRIPT
+
+
+
+$emacs = <<SCRIPT
+test -e /home/vagrant/.spacemacs || (
+  git clone --recursive https://github.com/syl20bnr/spacemacs /home/vagrant/.emacs.d && 
+  cp /home/vagrant/.emacs.d/core/templates/.spacemacs.template /home/vagrant/.spacemacs &&
+  sed -i "s/emacs-lisp/emacs-lisp (haskell :variables haskell-enable-ghci-ng-support t)/g" /home/vagrant/.spacemacs &&
+  sed -i "s/dotspacemacs-excluded-packages '()/dotspacemacs-excluded-packages '(exec-path-from-shell)/g" /home/vagrant/.spacemacs
+)
+cd /home/vagrant/.emacs.d
+git pull
+echo '#!/bin/sh'                               > /home/vagrant/bin/emacs.sh
+echo 'set -eu'                                >> /home/vagrant/bin/emacs.sh
+echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p haskellPackages.cabal-install -p haskellPackages.hlint -p haskellPackages.stylish-haskell -p haskellPackages.hasktags -p emacs --command "emacs"'   >> /home/vagrant/bin/emacs.sh
+chmod u+x /home/vagrant/bin/emacs.sh 
 SCRIPT
 
 
@@ -340,6 +365,7 @@ echo '#!/bin/sh'                     > /home/vagrant/bin/test.sh
 echo 'set -eu'                      >> /home/vagrant/bin/test.sh
 echo 'cd /tmp/ && cabal.sh init -n' >> /home/vagrant/bin/test.sh
 echo 'firefox.sh'                   >> /home/vagrant/bin/test.sh
+echo 'emacs.sh'                     >> /home/vagrant/bin/test.sh
 echo 'sublime.sh'                   >> /home/vagrant/bin/test.sh
 echo 'atom.sh'                      >> /home/vagrant/bin/test.sh
 echo "hoogle.sh 'Maybe a -> a'"     >> /home/vagrant/bin/test.sh

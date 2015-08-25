@@ -77,11 +77,20 @@ Vagrant.configure("2") do |config|
 
     # nixos-stuff
     config.vm.provision :nixos, :expression => {
+        environment: {
+            systemPackages: [:'python34Packages.pygments']
+        },
         programs: {
             # running GUI apps through SSH seems to need this...
             ssh: {
                 setXAuthLocation: true
+            },
+            zsh: {
+                enable: true
             }
+        },
+        users: {
+            defaultUserShell: "/run/current-system/sw/bin/zsh"
         },
         security: {
             # either NixOS in general or just the used box seems to need these...
@@ -124,6 +133,11 @@ Vagrant.configure("2") do |config|
     # update nixos
     config.vm.provision :shell,
         inline: 'sudo nixos-rebuild switch'
+
+    # install oh-my-zsh
+    config.vm.provision :shell,
+        inline: $ohmyzsh,
+        privileged: false
 
     # init config.nix to allow some packages
     config.vm.provision :shell,
@@ -216,6 +230,18 @@ SCRIPT
 
 
 
+$ohmyzsh = <<SCRIPT
+test -e /home/vagrant/.zshrc || (
+    (zsh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" || true) &&
+    echo 'source /home/vagrant/.profile' >> /home/vagrant/.zshrc &&
+    echo 'PROMPT="λ $PROMPT"' >> /home/vagrant/.zshrc &&
+    echo 'alias cat=colorize' >> /home/vagrant/.zshrc
+)
+sed -i "s/plugins=\(git\)/plugins=(git mercurial colorize cabal)/g" /home/vagrant/.zshrc
+SCRIPT
+
+
+
 $shellnix = <<SCRIPT
 echo '{app, compiler ? null, overrides ? (self: {})}:'                                                                  > /home/vagrant/shell.nix
 echo 'with (import <nixpkgs> {}).pkgs;'                                                                                >> /home/vagrant/shell.nix
@@ -227,6 +253,8 @@ SCRIPT
 
 
 
+# TODO: https://github.com/NixOS/nix/issues/498
+# zsh in nix-shell does not work yet, so need to use --command with a twist
 $shell = <<SCRIPT
 echo '#!/bin/sh'                                                                                                        > /home/vagrant/bin/shell.sh
 echo 'set -u'                                                                                                          >> /home/vagrant/bin/shell.sh
@@ -236,13 +264,13 @@ echo 'app=$(if [ -f "$PWD/shell.nix" ]; then echo "$PWD/shell.nix"; else echo "$
 echo 'nix-shell -p haskellPackages.cabal2nix --command "cabal2nix . > default.nix"'                                    >> /home/vagrant/bin/shell.sh
 echo 'foo=$(grep ghcjs $app)'                                                                                          >> /home/vagrant/bin/shell.sh
 echo 'if [ $? -eq 0 ]; then'                                                                                           >> /home/vagrant/bin/shell.sh
-echo '  nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --argstr compiler ghcjs'         >> /home/vagrant/bin/shell.sh
+echo '  nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "exec zsh; return" --argstr compiler ghcjs'         >> /home/vagrant/bin/shell.sh
 echo 'else'                                                                                                            >> /home/vagrant/bin/shell.sh
 echo '  bar=$(grep haste-compiler $app)'                                                                               >> /home/vagrant/bin/shell.sh
 echo '  if [ $? -eq 0 ]; then'                                                                                         >> /home/vagrant/bin/shell.sh
-echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --argstr compiler ghc784'      >> /home/vagrant/bin/shell.sh
+echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "exec zsh; return" --argstr compiler ghc784'      >> /home/vagrant/bin/shell.sh
 echo '  else'                                                                                                          >> /home/vagrant/bin/shell.sh
-echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides"'                               >> /home/vagrant/bin/shell.sh
+echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "exec zsh; return"'                               >> /home/vagrant/bin/shell.sh
 echo '  fi'                                                                                                            >> /home/vagrant/bin/shell.sh
 echo 'fi'                                                                                                              >> /home/vagrant/bin/shell.sh
 chmod u+x /home/vagrant/bin/shell.sh 

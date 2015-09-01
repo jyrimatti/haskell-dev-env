@@ -219,9 +219,9 @@ test -e /home/vagrant/nixpkgs || (
   ln -s /home/vagrant/nixpkgs /home/vagrant/.nix-defexpr/nixpkgs &&
   # remove old nixos channels
   rm -rf /home/vagrant/.nix-defexpr/channels &&
-  rm -rf /home/vagrant/.nix-defexpr/channels_root &&
-  echo 'export NIX_PATH=nixpkgs=/home/vagrant/nixpkgs:$NIX_PATH' >> /home/vagrant/.profile
+  rm -rf /home/vagrant/.nix-defexpr/channels_root
 )
+echo 'export NIX_PATH=nixpkgs=/home/vagrant/nixpkgs:$NIX_PATH' > /home/vagrant/.profile
 cd /home/vagrant/nixpkgs
 git fetch
 # NixPkgs revision to use. Feel free to update, but note that in master branch stuff seems to break a lot...
@@ -233,10 +233,11 @@ SCRIPT
 $ohmyzsh = <<SCRIPT
 test -e /home/vagrant/.zshrc || (
     (zsh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" || true) &&
-    echo 'source /home/vagrant/.profile' >> /home/vagrant/.zshrc &&
-    echo 'PROMPT="λ $PROMPT"' >> /home/vagrant/.zshrc &&
-    echo 'alias cat=colorize' >> /home/vagrant/.zshrc
+    echo 'source /home/vagrant/.profile' >> /home/vagrant/.zshrc
 )
+echo 'PROMPT="${PROMPT_PREFIX}λ $PROMPT"' >> /home/vagrant/.profile
+echo 'alias cat=colorize'                 >> /home/vagrant/.profile
+echo 'PATH="$PATH:$PATH_SUFFIX"'          >> /home/vagrant/.profile
 sed -i "s/plugins=\(git\)/plugins=(git mercurial colorize cabal)/g" /home/vagrant/.zshrc
 SCRIPT
 
@@ -264,13 +265,13 @@ echo 'app=$(if [ -f "$PWD/shell.nix" ]; then echo "$PWD/shell.nix"; else echo "$
 echo 'nix-shell -p haskellPackages.cabal2nix --command "cabal2nix . > default.nix"'                                    >> /home/vagrant/bin/shell.sh
 echo 'foo=$(grep ghcjs $app)'                                                                                          >> /home/vagrant/bin/shell.sh
 echo 'if [ $? -eq 0 ]; then'                                                                                           >> /home/vagrant/bin/shell.sh
-echo '  nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "exec zsh; return" --argstr compiler ghcjs'         >> /home/vagrant/bin/shell.sh
+echo '  nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "PATH_SUFFIX=\$PATH PROMPT_PREFIX='"'"'%{\\$fg_bold[red]%}'"'"' exec zsh; return" --argstr compiler ghcjs'         >> /home/vagrant/bin/shell.sh
 echo 'else'                                                                                                            >> /home/vagrant/bin/shell.sh
 echo '  bar=$(grep haste-compiler $app)'                                                                               >> /home/vagrant/bin/shell.sh
 echo '  if [ $? -eq 0 ]; then'                                                                                         >> /home/vagrant/bin/shell.sh
-echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "exec zsh; return" --argstr compiler ghc784'      >> /home/vagrant/bin/shell.sh
+echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "PATH_SUFFIX=\$PATH PROMPT_PREFIX='"'"'%{\\$fg_bold[red]%}'"'"' exec zsh; return" --argstr compiler ghc784'      >> /home/vagrant/bin/shell.sh
 echo '  else'                                                                                                          >> /home/vagrant/bin/shell.sh
-echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "exec zsh; return"'                               >> /home/vagrant/bin/shell.sh
+echo '    nix-shell /home/vagrant/shell.nix --arg app $app --arg overrides "$overrides" --command "PATH_SUFFIX=\$PATH PROMPT_PREFIX='"'"'%{\\$fg_bold[red]%}'"'"' exec zsh; return"'                               >> /home/vagrant/bin/shell.sh
 echo '  fi'                                                                                                            >> /home/vagrant/bin/shell.sh
 echo 'fi'                                                                                                              >> /home/vagrant/bin/shell.sh
 chmod u+x /home/vagrant/bin/shell.sh 

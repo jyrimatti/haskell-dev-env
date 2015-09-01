@@ -291,7 +291,7 @@ $hoogle = <<SCRIPT
 echo '#!/bin/sh'                                                                                                        > /home/vagrant/bin/hoogle.sh
 echo 'set -eu'                                                                                                         >> /home/vagrant/bin/hoogle.sh
 echo 'cd /home/vagrant/hoogledb'                                                                                       >> /home/vagrant/bin/hoogle.sh
-echo 'nix-shell -p haskellPackages.hoogle --command "hoogle data all -d /home/vagrant/hoogledb && hoogle $1"'          >> /home/vagrant/bin/hoogle.sh
+echo 'nix-shell -p haskellPackages.hoogle --command "hoogle data all -d /home/vagrant/hoogledb && hoogle $*"'          >> /home/vagrant/bin/hoogle.sh
 chmod u+x /home/vagrant/bin/hoogle.sh 
 SCRIPT
 
@@ -301,7 +301,7 @@ $sublime = <<SCRIPT
 echo '#!/bin/sh'                                                                                                           > /home/vagrant/bin/sublime.sh
 echo 'set -eu'                                                                                                            >> /home/vagrant/bin/sublime.sh
 
-echo 'nix-shell -p haskellPackages.stylish-haskell -p haskellPackages.hsdev -p sublime3 --command "sublime $@"' >> /home/vagrant/bin/sublime.sh
+echo 'nix-shell -p haskellPackages.stylish-haskell -p haskellPackages.hsdev -p sublime3 --command "sublime $*"' >> /home/vagrant/bin/sublime.sh
 
 chmod u+x /home/vagrant/bin/sublime.sh
 
@@ -330,7 +330,7 @@ echo '#!/bin/sh'                                                                
 echo 'set -eu'                                                                                                         >> /home/vagrant/bin/atom.sh
 echo 'nix-shell -p atom --command "apm install language-haskell haskell-ghc-mod ide-haskell autocomplete-haskell"'     >> /home/vagrant/bin/atom.sh
 
-echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p haskellPackages.cabal-install -p haskellPackages.hlint -p haskellPackages.stylish-haskell -p atom --command "atom"' >> /home/vagrant/bin/atom.sh
+echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p haskellPackages.cabal-install -p haskellPackages.hlint -p haskellPackages.stylish-haskell -p atom --command "atom $*"' >> /home/vagrant/bin/atom.sh
 
 chmod u+x /home/vagrant/bin/atom.sh 
 SCRIPT
@@ -348,7 +348,7 @@ cd /home/vagrant/.emacs.d
 git pull
 echo '#!/bin/sh'                               > /home/vagrant/bin/emacs.sh
 echo 'set -eu'                                >> /home/vagrant/bin/emacs.sh
-echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p haskellPackages.cabal-install -p haskellPackages.hlint -p haskellPackages.stylish-haskell -p haskellPackages.hasktags -p emacs --command "emacs"'   >> /home/vagrant/bin/emacs.sh
+echo 'nix-shell -p "pkgs.haskellPackages.ghcWithPackages (pkgs: [pkgs.ghc-mod])" -p haskellPackages.cabal-install -p haskellPackages.hlint -p haskellPackages.stylish-haskell -p haskellPackages.hasktags -p emacs --command "emacs $*"'   >> /home/vagrant/bin/emacs.sh
 chmod u+x /home/vagrant/bin/emacs.sh 
 SCRIPT
 
@@ -357,7 +357,7 @@ SCRIPT
 $leksah = <<SCRIPT
 echo '#!/bin/sh'                                > /home/vagrant/bin/leksah.sh
 echo 'set -eu'                                  >> /home/vagrant/bin/leksah.sh
-echo 'nix-shell -p leksah --command "leksah"'   >> /home/vagrant/bin/leksah.sh
+echo 'nix-shell -p leksah --command "leksah $*"'   >> /home/vagrant/bin/leksah.sh
 chmod u+x /home/vagrant/bin/leksah.sh 
 SCRIPT
 
@@ -366,7 +366,7 @@ SCRIPT
 $firefox = <<SCRIPT
 echo '#!/bin/sh'                                     > /home/vagrant/bin/firefox.sh
 echo 'set -eu'                                      >> /home/vagrant/bin/firefox.sh
-echo 'nix-shell -p firefox --command "firefox"'     >> /home/vagrant/bin/firefox.sh
+echo 'nix-shell -p firefox --command "firefox $*"'     >> /home/vagrant/bin/firefox.sh
 chmod u+x /home/vagrant/bin/firefox.sh 
 SCRIPT
 
@@ -378,7 +378,7 @@ echo 'set -eu'                                                                  
 echo 'PID=$$'                                                                                                          >> /home/vagrant/bin/cc.sh
 echo 'while true; do'                                                                                                  >> /home/vagrant/bin/cc.sh
 echo '  test -e build || mkdir build'                                                                                  >> /home/vagrant/bin/cc.sh
-echo '  time ghc --make -outputdir build -o build/prog -isrc src/Main.hs'                                              >> /home/vagrant/bin/cc.sh
+echo '  time ghc --make -outputdir build -o build/prog -isrc src/Main.hs $@'                                           >> /home/vagrant/bin/cc.sh
 echo '  build/prog &'                                                                                                  >> /home/vagrant/bin/cc.sh
 echo '  nix-shell -p inotifyTools --command "inotifywait -e modify -e move -e create -e delete src || true"'           >> /home/vagrant/bin/cc.sh
 echo '  pkill -P $PID || true'                                                                                         >> /home/vagrant/bin/cc.sh

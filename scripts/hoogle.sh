@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
-cd /home/vagrant/hoogledb
-nix-shell -p haskellPackages.hoogle --command "hoogle data all -d /home/vagrant/hoogledb && hoogle $*"
+nix-shell -p haskellPackages.hoogle --command "hoogle data -d $NIX_SHELL_ROOT/hoogledb && hoogle -d $NIX_SHELL_ROOT/hoogledb '$*'"
+

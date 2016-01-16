@@ -181,7 +181,7 @@ echo 'export NIX_PATH=nixpkgs=/home/vagrant/nixpkgs:$NIX_PATH' > /home/vagrant/.
 cd /home/vagrant/nixpkgs
 git fetch
 # NixPkgs revision to use. Feel free to update, but note that in master branch stuff seems to break a lot...
-git checkout 'a514476e1bc8bf7131ca991fc2b34525ef1eecd6'
+git checkout 'dfe65b6ef82c58c4649ee3979ac099fe2c6f60a9'
 SCRIPT
 
 
